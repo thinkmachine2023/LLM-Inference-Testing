@@ -11,7 +11,7 @@ Patterns:
     2. Long Input / Long Output   (e.g., text analysis, detailed summary)
     3. Long Input / Short Output  (e.g., classification, sentiment analysis)
 
-Author: Claude
+Author: Liang Zhun
 Version: 1.0.0
 Created: October 2024
 License: Apache License 2.0
