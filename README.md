@@ -1,5 +1,5 @@
 # LLM-Inference-Testing
-# LLM 推理服务测试工具 (LLM Inference Performance Testing Tools)
+# LLM 推理服务性能测试工具 (LLM Inference Performance Testing Tools)
 
 用于评估和测试大语言模型推理服务端到端性能的专业工具集，包含负载生成和性能测试功能。
 
@@ -18,6 +18,160 @@
 - 端到端延迟 (End-to-End Latency)
 - Token吞吐量 (TPS - Tokens Per Second)
 - 请求吞吐量 (RPS - Requests Per Second)
+
+
+LLM推理服务的五个核心性能指标计算方法和详细说明：
+
+#### 1. 首个Token响应时间 (TTFT - Time To First Token)
+
+```python
+ttft = (first_token_time - start_time) * 1000  # 转换为毫秒
+```
+
+**说明：**
+- **定义**：从发送请求到接收到第一个生成token的时间
+- **单位**：毫秒 (ms)
+- **计算要点**：
+  - `start_time`：请求发送时间戳
+  - `first_token_time`：首个token接收时间戳
+  - 需要开启stream模式才能准确计算
+- **性能标准**：
+  - 优秀：< 200ms
+  - 良好：200-500ms
+  - 需优化：> 500ms
+- **影响因素**：
+  - 网络延迟
+  - 推理服务启动时间
+  - 输入处理时间
+  - 模型加载状态
+
+#### 2. 单Token生成时间 (TPOT - Time Per Output Token)
+
+```python
+generation_time = end_time - first_token_time
+tpot = (generation_time / output_tokens) * 1000  # 毫秒/token
+```
+
+**说明：**
+- **定义**：生成每个token的平均时间
+- **单位**：毫秒/token (ms/token)
+- **计算要点**：
+  - `generation_time`：总生成时间（不包含首个token的等待时间）
+  - `output_tokens`：生成的token总数
+  - 需排除TTFT的影响
+- **性能标准**：
+  - 优秀：< 30ms/token
+  - 良好：30-50ms/token
+  - 需优化：> 50ms/token
+- **影响因素**：
+  - 模型计算能力
+  - 硬件配置
+  - batch大小
+  - 上下文长度
+
+#### 3. 端到端延迟 (Latency)
+
+```python
+latency = (end_time - start_time) * 1000  # 转换为毫秒
+# 或者
+latency = ttft + (tpot * output_tokens)  # 理论计算
+```
+
+**说明：**
+- **定义**：完整请求的总响应时间
+- **单位**：毫秒 (ms)
+- **计算要点**：
+  - 包含完整的请求生命周期
+  - 从发送请求到接收全部响应
+  - 考虑所有处理环节
+- **性能标准**：
+  - 因输出长度不同而异
+  - 短文本（<100 tokens）：建议 < 2000ms
+  - 长文本：可接受延迟 = 基础延迟(TTFT) + 单token时间 × token数量
+- **影响因素**：
+  - TTFT
+  - TPOT
+  - 输出长度
+  - 网络状况
+
+#### 4. Token吞吐量 (TPS - Tokens Per Second)
+
+```python
+tps = output_tokens / total_time  # total_time单位为秒
+```
+
+**说明：**
+- **定义**：每秒生成的token数量
+- **单位**：tokens/second
+- **计算要点**：
+  - `output_tokens`：生成的token总数
+  - `total_time`：总处理时间（秒）
+  - 批处理场景下需考虑并发
+- **性能标准**：
+  - 单请求：
+    - 优秀：> 70 tokens/s
+    - 良好：30-70 tokens/s
+    - 需优化：< 30 tokens/s
+  - 批处理场景下会随batch size变化
+- **影响因素**：
+  - 模型性能
+  - 硬件配置
+  - 批处理大小
+  - 系统负载
+
+#### 5. 请求吞吐量 (RPS - Requests Per Second)
+
+```python
+rps = 1 / total_time  # 单请求
+# 或
+rps = request_count / total_test_time  # 批处理场景
+```
+
+**说明：**
+- **定义**：每秒处理的请求数量
+- **单位**：requests/second
+- **计算要点**：
+  - 单请求：请求处理时间的倒数
+  - 批处理：总请求数/总测试时间
+  - 需考虑并发和排队延迟
+- **性能标准**：
+  - 因请求复杂度不同而异
+  - 简单请求：> 1 RPS
+  - 复杂请求：0.1-1 RPS
+  - 批处理：随batch size优化
+- **影响因素**：
+  - 系统资源
+  - 并发能力
+  - 请求复杂度
+  - 负载均衡
+
+### 指标关系
+
+1. **计算关系**
+```
+总延迟(Latency) = TTFT + 生成时间
+生成时间 = TPOT × 输出token数
+理论最大RPS = 1 / Latency
+实际RPS ≤ 理论最大RPS
+```
+
+2. **优化建议**
+- TTFT优化：
+  - 模型预热
+  - 资源预分配
+  - 网络优化
+
+- TPOT优化：
+  - 硬件升级
+  - 模型量化
+  - 批处理优化
+
+- 吞吐量优化：
+  - 合理的batch size
+  - 请求排队策略
+  - 负载均衡
+  - 资源弹性扩展
+
 
 ## 环境要求
 
