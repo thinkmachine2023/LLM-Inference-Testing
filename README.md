@@ -352,7 +352,7 @@ llm-inference-testing/
 
 ## 作者
 
-- ThinkMachine -
+- ![image](https://github.com/user-attachments/assets/61a58b87-9764-44f6-b030-6c0a4f27553c)
   
 ## 致谢
 
@@ -361,3 +361,5 @@ llm-inference-testing/
 ## 联系方式
 
 - 项目地址: [https://github.com/thinkmachine2023/llm-inference-testing](https://github.com/thinkmachine2023/llm-inference-testing)
+
+
